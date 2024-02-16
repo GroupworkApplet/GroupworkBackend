@@ -8,7 +8,7 @@ from .models import TaskSettlement, MemberContribution
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username']
+        fields = ['id', 'username', 'email']
 
 
 class UserCreditSerializer(serializers.ModelSerializer):

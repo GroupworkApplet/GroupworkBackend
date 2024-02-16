@@ -6,7 +6,7 @@ from .models import Task, TaskAssignment, TaskProgress
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username']
+        fields = ['id', 'username', 'email']
 
 
 class TaskSerializer(serializers.ModelSerializer):

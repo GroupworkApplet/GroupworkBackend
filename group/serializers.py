@@ -3,6 +3,12 @@ from rest_framework import serializers
 from .models import *
 
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email']
+
+
 class GroupSerializer(serializers.ModelSerializer):
     task = serializers.CharField(source='task.title')
     members = serializers.StringRelatedField(many=True)
