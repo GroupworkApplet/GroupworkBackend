@@ -1,14 +1,9 @@
 from rest_framework import serializers
+from user.serializers import UserSerializer
 from django.contrib.auth.models import User
-from task.models import Task  # 假设 Task 模型来自 task app
-from user.models import UserCredit  # 假设 UserCredit 模型来自 user app
+from task.models import Task
+from user.models import UserCredit
 from .models import TaskSettlement, MemberContribution
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email']
 
 
 class UserCreditSerializer(serializers.ModelSerializer):
