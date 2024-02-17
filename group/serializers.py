@@ -4,38 +4,45 @@ from .models import *
 
 
 class GroupSerializer(serializers.ModelSerializer):
-    task = serializers.CharField(source='task.title')
-    members = serializers.StringRelatedField(many=True)
+    task_title = serializers.ReadOnlyField(source='task.title')
+    members = serializers.PrimaryKeyRelatedField(
+        many=True, source='members',
+        queryset=GroupMember.objects.all(),
+    )
+    messages = serializers.PrimaryKeyRelatedField(
+        source='messages', many=True, read_only=True
+    )
+    documents = serializers.PrimaryKeyRelatedField(
+        source='documents', many=True, read_only=True
+    )
+    progress = serializers.PrimaryKeyRelatedField(source='progress',read_only=True)
 
     class Meta:
         model = Group
         fields = '__all__'
-        read_only_fields = ('created_at',)
 
 
 class GroupMemberSerializer(serializers.ModelSerializer):
-    group = serializers.CharField(source='group.name')
-    user = serializers.CharField(source='user.name')
+    group_name = serializers.ReadOnlyField(source='group.name')
+    user_name = serializers.ReadOnlyField(source='user.name')
 
     class Meta:
         model = GroupMember
         fields = '__all__'
-        read_only_fields = ('is_leader', 'joined_at',)
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    group = serializers.CharField(source='group.name')
-    sender = serializers.CharField(source='user.name')
+    group_name = serializers.ReadOnlyField(source='group.name')
+    sender_name = serializers.ReadOnlyField(source='user.name')
 
     class Meta:
         model = Message
         fields = '__all__'
-        read_only_fields = ('created_at',)
 
 
 class DocumentSerializer(serializers.ModelSerializer):
-    group = serializers.CharField(source='group.name')
-    sender = serializers.CharField(source='user.name')
+    group_name = serializers.ReadOnlyField(source='group.name')
+    sender_name = serializers.ReadOnlyField(source='user.name')
 
     class Meta:
         model = Document
@@ -43,7 +50,7 @@ class DocumentSerializer(serializers.ModelSerializer):
 
 
 class ProgressSerializer(serializers.ModelSerializer):
-    group = serializers.CharField(source='group.name')
+    group_name = serializers.ReadOnlyField(source='group.name')
 
     class Meta:
         model = Progress

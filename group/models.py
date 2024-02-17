@@ -7,7 +7,7 @@ from task.models import Task
 # 小组的类
 class Group(models.Model):
     name = models.CharField(max_length=50, verbose_name='小组名')
-    task = models.OneToOneField(Task, verbose_name='对应任务', on_delete=models.CASCADE)
+    task = models.OneToOneField(Task, verbose_name='对应任务', on_delete=models.CASCADE, related_name='task')
     description = models.TextField(verbose_name='小组描述')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')
