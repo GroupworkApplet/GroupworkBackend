@@ -19,7 +19,7 @@ class Group(models.Model):
 # 小组成员的类
 class GroupMember(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='members', verbose_name='小组')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='groups', verbose_name='用户')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_member', verbose_name='用户')
     is_leader = models.BooleanField(default=False, verbose_name='是否为组长')
     joined_at = models.DateTimeField(auto_now_add=True, verbose_name='加入时间')
 

@@ -1,8 +1,8 @@
 from django.urls import path
-from .views import show_results, handle_timeout, adjust_contribution
+from .views import TaskSettlementView, MemberContributionView, UpdateCreditView
 
 urlpatterns = [
-    path('show_results/', show_results),
-    path('handle_timeout/', handle_timeout),
-    path('adjust_contribution/<int:member_id>/', adjust_contribution),
+    path('task/<int:task_id>/', TaskSettlementView.as_view()),
+    path('contribution/<int:settlement_id>/', MemberContributionView.as_view()),
+    path('contribution/update/<int:contribution_id>/', UpdateCreditView.as_view()),
 ]
