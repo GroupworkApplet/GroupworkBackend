@@ -1,7 +1,8 @@
 from django.urls import path
-from .views import notification_list, notification_detail
+from .views import NotificationListView, NotificationDetailView
 
 urlpatterns = [
-    path("notification_list/", notification_list),
-    path("notification_detail/", notification_detail),
+    path('notifications/', NotificationListView.as_view(), name='notification-list'),
+    path('notifications/<int:notification_id>/', NotificationDetailView.as_view(), name='notification-detail'),
 ]
+
