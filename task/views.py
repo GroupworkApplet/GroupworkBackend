@@ -6,30 +6,29 @@ from rest_framework.response import Response
 from rest_framework import status
 
 
-# Create your views here.
-# 任务详情
-def TaskDetails(request, pk):
-    taskdetails = Task.objects.get(pk=pk)
-    context = {
-        '任务名称': taskdetails.title,
-        '任务详情': taskdetails.detail,
-        '任务类型': taskdetails.type,
-        '任务创建者': taskdetails.leader,
-        '截止日期': taskdetails.deadline
-    }
-    return render(request, 'TaskDetails.html', context)
+class TaskDetailsView(APIView):
+    def get(self, request, pk):
+        task = get_object_or_404(Task, pk=pk)
+        context = {
+            '任务名称': task.title,
+            '任务详情': task.detail,
+            '任务类型': task.type,
+            '任务创建者': task.leader,
+            '截止日期': task.deadline
+        }
+        return Response(context)
 
 
-# 任务进度
-def TaskProgressDetails(request, pk):
-    task_progress = TaskProgress.objects.get(pk=pk)
-    context = {
-        '任务': task_progress.task,
-        '任务状态': task_progress.status,
-        '提醒时间': task_progress.remind_time,
-        '提醒内容': task_progress.remind_time
-    }
-    return render(request, 'TaskProgressDetails.html', context)
+class TaskProgressDetailsView(APIView):
+    def get(self, request, pk):
+        task_progress = get_object_or_404(TaskProgress, pk=pk)
+        context = {
+            '任务': task_progress.task,
+            '任务状态': task_progress.status,
+            '提醒时间': task_progress.remind_time,
+            '提醒内容': task_progress.remind_content
+        }
+        return Response(context)
 
 
 # 任务分配
