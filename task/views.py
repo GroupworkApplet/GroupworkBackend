@@ -20,9 +20,9 @@ class CreateTaskView(APIView):
                 # 创建任务进度，默认状态为"未开始"
                 task_progress_data = {
                     'task': task.id,
-                    'status': '0',  # 假设'0'代表'未开始'
-                    'remind_time': None,  # 或从request.data中提取
-                    'remind_content': ''  # 或从request.data中提取
+                    'status': '0',
+                    'remind_time': None,
+                    'remind_content': ''
                 }
                 task_progress_serializer = TaskProgressSerializer(data=task_progress_data)
                 if task_progress_serializer.is_valid():
