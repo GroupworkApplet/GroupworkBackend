@@ -21,16 +21,22 @@ class CreateTaskView(APIView):
                 task_progress_data = {
                     'task': task.id,
                     'status': '0',
-                    'remind_time': None,
-                    'remind_content': ''
+                    'remind_time': request.data.get('remind_time'),
+                    'remind_content': request.data.get('remind_content', '')
                 }
                 task_progress_serializer = TaskProgressSerializer(data=task_progress_data)
                 if task_progress_serializer.is_valid():
-                    task_progress_serializer.save()
+                    task_progress = task_progress_serializer.save()
                 else:
                     return Response(task_progress_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-                return Response(task_serializer.data, status=status.HTTP_201_CREATED)
+                # 合并任务和任务进度的数据，并返回
+                response_data = {
+                    'task': task_serializer.data,
+                    'task_progress': task_progress_serializer.data
+                }
+                return Response(response_data, status=status.HTTP_201_CREATED)
+
             return Response(task_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -61,14 +67,16 @@ class TaskDetailsView(APIView):
 # 任务进度
 class TaskProgressDetailsView(APIView):
     def get(self, request, pk):
-        # 获取任务进度详情
-        task_progress = get_object_or_404(TaskProgress, pk=pk)
+        # 首先获取 Task 对象
+        task = get_object_or_404(Task, pk=pk)
+        # 然后获取关联的 TaskProgress 对象
+        task_progress = get_object_or_404(TaskProgress, task=task)
         serializer = TaskProgressSerializer(task_progress)
         return Response(serializer.data)
 
     def put(self, request, pk):
-        # 更新任务进度详情
-        task_progress = get_object_or_404(TaskProgress, pk=pk)
+        task = get_object_or_404(Task, pk=pk)
+        task_progress = get_object_or_404(TaskProgress, task=task)
         serializer = TaskProgressSerializer(task_progress, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -78,44 +86,51 @@ class TaskProgressDetailsView(APIView):
 
 # 任务分配表
 class TaskAssignmentList(APIView):
-    def get(self, request):
-        # 获取任务分配
-        task_assignments = TaskAssignment.objects.all()
-        serializer = TaskAssignmentSerializer(task_assignments, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        # 创建任务分配
-        serializer = TaskAssignmentSerializer(data=request.data)
+    def post(self, request, pk):
+        # 获取任务对象
+        task = get_object_or_404(Task, pk=pk)
+        # 创建任务分配的序列化器，并传递任务对象到context参数中
+        serializer = TaskAssignmentSerializer(data=request.data, context={'task': task})
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            task_assignment = serializer.save()
+            task_id = task_assignment.task_id
+            response_data = {
+                'task_assignment': serializer.data,
+                'task_id': task_id
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-# 任务分配详情
-class TaskAssignmentDetail(APIView):
-    def get_object(self, pk):
-        # 获取任务分配对象
-        return get_object_or_404(TaskAssignment, pk=pk)
-
     def get(self, request, pk):
-        # 获取任务分配详情
-        task_assignment = self.get_object(pk)
-        serializer = TaskAssignmentSerializer(task_assignment)
-        return Response(serializer.data)
+        # 获取任务对象
+        task = get_object_or_404(Task, pk=pk)
+        # 获取任务分配列表
+        task_assignments = task.assignments.all()
+        serializer = TaskAssignmentSerializer(task_assignments, many=True)
+        task_id = task_assignments[0].task_id
+        response_data = {
+            'task_assignments': serializer.data,
+            'task_id': task_id
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
 
-    def put(self, request, pk):
-        # 更新任务分配详情
-        task_assignment = self.get_object(pk)
+    def put(self, request, pk, assignment_id):
+        # 获取任务对象和任务分配对象
+        task = get_object_or_404(Task, pk=pk)
+        task_assignment = get_object_or_404(TaskAssignment, pk=assignment_id, task=task)
+
+        # 更新任务分配的序列化器
         serializer = TaskAssignmentSerializer(task_assignment, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
+    def delete(self, request, pk, assignment_id):
+        # 获取任务对象和任务分配对象
+        task = get_object_or_404(Task, pk=pk)
+        task_assignment = get_object_or_404(TaskAssignment, pk=assignment_id, task=task)
+
         # 删除任务分配
-        task_assignment = self.get_object(pk)
         task_assignment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
