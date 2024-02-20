@@ -22,7 +22,7 @@ class MemberContributionView(APIView):
         serializer = MemberContributionSerializer(contributions, many=True)
         return Response(serializer.data)
 
-    def post(self, request, settlement_id):
+    def post(self, request):
         serializer = MemberContributionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()

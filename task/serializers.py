@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from user.serializers import UserSerializer
-from django.contrib.auth.models import User
 from .models import Task, TaskAssignment, TaskProgress
 
 

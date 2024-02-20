@@ -1,8 +1,6 @@
-
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework import status
-
 
 from .serializers import *
 from .models import *
@@ -16,11 +14,11 @@ class GroupList(views.APIView):
             groups = Group.objects.all()
         except Group.DoesNotExist():
             return Response({'message': '查询对象不存在'},
-                     status=status.HTTP_404_NOT_FOUND)
+                            status=status.HTTP_404_NOT_FOUND)
         group_list = GroupSerializer(instance=groups, many=True)
         Response(group_list.data, status=status.HTTP_200_OK)
 
-    def post(self,request):
+    def post(self, request):
         group_set = GroupSerializer(data=request.data, many=True)
         if group_set.is_valid():
             group_set.save()
@@ -28,6 +26,7 @@ class GroupList(views.APIView):
         else:
             return Response({'message': '传入数据错误'},
                             status=status.HTTP_400_BAD_REQUEST)
+
 
 # 某个组的接口
 class GroupDetail(views.APIView):
@@ -58,7 +57,7 @@ class GroupDetail(views.APIView):
         new_group = GroupSerializer(instance=group, data=request.data)
         if new_group.is_valid():
             new_group.save()
-            return Response(new_group.data,status=status.HTTP_200_OK)
+            return Response(new_group.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': '传入数据错误'},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -91,7 +90,7 @@ class GroupMemberList(views.APIView):
         if not member_set.is_valid():
             return Response({'message': '传入数据错误'}, status=status.HTTP_400_BAD_REQUEST)
         if member_set.data['group'] != group_id:
-            return Response({'message':'传入数据矛盾'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': '传入数据矛盾'}, status=status.HTTP_400_BAD_REQUEST)
 
         member_set.save()
         return Response(member_set.data, status=status.HTTP_200_OK)
@@ -125,12 +124,12 @@ class GroupMemberDetail(views.APIView):
         new_member = GroupSerializer(instance=member, data=request.data)
         if new_member.is_valid():
             new_member.save()
-            return Response(new_member.data,status=status.HTTP_200_OK)
+            return Response(new_member.data, status=status.HTTP_200_OK)
         else:
             return Response({'message': '传入数据错误'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self,request,pk):
+    def delete(self, request, pk):
         member = self.find_group_member(pk)
         if not member:
             return Response({'message': '要删除的组员不存在'},
@@ -138,6 +137,7 @@ class GroupMemberDetail(views.APIView):
         member.delete()
         return Response({'message': '删除组员成功成功'},
                         status=status.HTTP_204_NO_CONTENT)
+
 
 # 一个group中所有消息的接口
 class MessageList(views.APIView):
@@ -308,10 +308,3 @@ class ProgressDetail(views.APIView):
                             status=status.HTTP_400_BAD_REQUEST)
         new_progress.save()
         return Response(new_progress.data, status=status.HTTP_200_OK)
-
-
-
-
-
-
-

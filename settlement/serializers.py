@@ -1,25 +1,7 @@
 from rest_framework import serializers
 from user.serializers import UserSerializer
-from django.contrib.auth.models import User
-from task.models import Task
-from user.models import UserCredit
+from task.serializers import TaskSerializer
 from .models import TaskSettlement, MemberContribution
-
-
-class UserCreditSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = UserCredit
-        fields = ['user', 'credit']
-
-
-class TaskSerializer(serializers.ModelSerializer):
-    leader = UserSerializer(read_only=True)
-
-    class Meta:
-        model = Task
-        fields = ['id', 'title', 'detail', 'type', 'leader', 'deadline']
 
 
 class TaskSettlementSerializer(serializers.ModelSerializer):
