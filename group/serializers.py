@@ -5,17 +5,10 @@ from .models import *
 
 class GroupSerializer(serializers.ModelSerializer):
     task_title = serializers.ReadOnlyField(source='task.title')
-    members = serializers.PrimaryKeyRelatedField(
-        many=True, source='members',
-        queryset=GroupMember.objects.all(),
-    )
-    messages = serializers.PrimaryKeyRelatedField(
-        source='messages', many=True, read_only=True
-    )
-    documents = serializers.PrimaryKeyRelatedField(
-        source='documents', many=True, read_only=True
-    )
-    progress = serializers.PrimaryKeyRelatedField(source='progress',read_only=True)
+    members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    messages = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    documents = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    progress = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Group

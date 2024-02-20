@@ -16,7 +16,7 @@ class GroupList(views.APIView):
             return Response({'message': '查询对象不存在'},
                             status=status.HTTP_404_NOT_FOUND)
         group_list = GroupSerializer(instance=groups, many=True)
-        Response(group_list.data, status=status.HTTP_200_OK)
+        return Response(group_list.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         group_set = GroupSerializer(data=request.data, many=True)
@@ -35,9 +35,9 @@ class GroupDetail(views.APIView):
     # 判断查找的group是否存在
     def find_group(pk):
         try:
-            group = Group.objects.get(id)
+            group = Group.objects.get(pk=pk)
             return group
-        except Group.DoesNotExist():
+        except Group.DoesNotExist:
             return False
 
     def get(self, request, pk):
@@ -86,12 +86,9 @@ class GroupMemberList(views.APIView):
             status=status.HTTP_200_OK)
 
     def post(self, request, group_id):
-        member_set = GroupSerializer(data=request.data, many=True)
+        member_set = GroupMemberSerializer(data=request.data, many=True)
         if not member_set.is_valid():
             return Response({'message': '传入数据错误'}, status=status.HTTP_400_BAD_REQUEST)
-        if member_set.data['group'] != group_id:
-            return Response({'message': '传入数据矛盾'}, status=status.HTTP_400_BAD_REQUEST)
-
         member_set.save()
         return Response(member_set.data, status=status.HTTP_200_OK)
 
