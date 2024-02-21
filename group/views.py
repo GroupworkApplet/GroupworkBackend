@@ -5,7 +5,6 @@ from rest_framework import status
 from .serializers import *
 from .models import *
 
-import logging
 
 
 # 所有组的接口
