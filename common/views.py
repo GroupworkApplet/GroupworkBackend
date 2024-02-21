@@ -1,49 +1,49 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
-from .models import Notification, User
-from group.models import Group
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import Notification
 from .serializers import NotificationSerializer
-from django.shortcuts import get_object_or_404
 
 
-class NotificationListView(APIView):
-    def get(self, request):
-        user = request.user
-        notifications = Notification.objects.filter(user=user)
+@api_view(['GET', 'POST'])
+def notification_list(request):
+    """
+    获取所有通知或创建新通知
+    """
+    if request.method == 'GET':
+        notifications = Notification.objects.all()
         serializer = NotificationSerializer(notifications, many=True)
         return Response(serializer.data)
 
+    elif request.method == 'POST':
+        serializer = NotificationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class NotificationDetailView(APIView):
-    def get(self, request, notification_id):
-        user = request.user
-        notification = get_object_or_404(Notification, id=notification_id, user=user)
-        notification.is_read = True
-        notification.save()
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def notification_detail(request, pk):
+    """
+    获取，更新或删除一个通知
+    """
+    try:
+        notification = Notification.objects.get(pk=pk)
+    except Notification.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
         serializer = NotificationSerializer(notification)
         return Response(serializer.data)
 
-
-class NotificationCreateView(APIView):
-    def post(self, request, group_id):
-        group = get_object_or_404(Group, id=group_id)
-        users = group.members.all()
-
-        data = {
-            'user_ids': [user.id for user in users],
-            'title': request.data.get('title'),
-            'message': request.data.get('message')
-        }
-
-        serializer = NotificationSerializer(data=data, context={'group': group})
+    elif request.method == 'PUT':
+        serializer = NotificationSerializer(notification, data=request.data)
         if serializer.is_valid():
-            notifications = serializer.save()
-            response_data = {
-                'notification_ids': [notification.id for notification in notifications],
-                'members': [user.id for user in users],
-                'group_id': group_id,
-                'notifications': NotificationSerializer(notifications, many=True).data
-            }
-            return Response(response_data, status=status.HTTP_201_CREATED)
+            serializer.save()
+            return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        notification.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
