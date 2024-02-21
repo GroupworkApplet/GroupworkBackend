@@ -17,7 +17,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
 class GroupMemberSerializer(serializers.ModelSerializer):
     group_name = serializers.ReadOnlyField(source='group.name')
-    user_name = serializers.ReadOnlyField(source='user.name')
+    user_name = serializers.ReadOnlyField(source='user.username')
 
     class Meta:
         model = GroupMember
@@ -26,7 +26,7 @@ class GroupMemberSerializer(serializers.ModelSerializer):
 
 class MessageSerializer(serializers.ModelSerializer):
     group_name = serializers.ReadOnlyField(source='group.name')
-    sender_name = serializers.ReadOnlyField(source='user.name')
+    sender_name = serializers.ReadOnlyField(source='sender.username')
 
     class Meta:
         model = Message

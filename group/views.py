@@ -5,6 +5,8 @@ from rest_framework import status
 from .serializers import *
 from .models import *
 
+import logging
+
 
 # 所有组的接口
 class GroupList(views.APIView):
@@ -68,7 +70,7 @@ class GroupDetail(views.APIView):
             return Response({'message': '要删除的组群不存在'},
                             status=status.HTTP_400_BAD_REQUEST)
         group.delete()
-        return Response({'message': '删除书籍成功'},
+        return Response({'message': '删除小组成功'},
                         status=status.HTTP_204_NO_CONTENT)
 
 
@@ -100,25 +102,25 @@ class GroupMemberDetail(views.APIView):
         try:
             member = GroupMember.objects.get(pk=pk)
             return member
-        except GroupMember.DoesNotExist():
+        except GroupMember.DoesNotExist:
             return False
 
-    def get(self, request, pk):
+    def get(self, request, pk, group_id):
         member = self.find_group_member(pk)
         if not member:
             return Response({'message': '请求的组员不存在'},
                             status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(
-                GroupSerializer(instance=member).data,
+                GroupMemberSerializer(instance=member).data,
                 status=status.HTTP_200_OK)
 
-    def put(self, request, pk):
+    def put(self, request, pk, group_id):
         member = self.find_group_member(pk)
         if not member:
             return Response({'message': '要更新的组员不存在'},
                             status=status.HTTP_400_BAD_REQUEST)
-        new_member = GroupSerializer(instance=member, data=request.data)
+        new_member = GroupMemberSerializer(instance=member, data=request.data)
         if new_member.is_valid():
             new_member.save()
             return Response(new_member.data, status=status.HTTP_200_OK)
@@ -126,7 +128,7 @@ class GroupMemberDetail(views.APIView):
             return Response({'message': '传入数据错误'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
+    def delete(self, request, pk, group_id):
         member = self.find_group_member(pk)
         if not member:
             return Response({'message': '要删除的组员不存在'},
@@ -142,19 +144,21 @@ class MessageList(views.APIView):
     def get(self, request, group_id):
         try:
             messages = Message.objects.filter(group_id=group_id)
-        except GroupMember.DoesNotExist():
+        except Message.DoesNotExist:
             return Response({'message': '查询对象不存在'}, status=status.HTTP_404_NOT_FOUND)
 
         return Response(
-            GroupMemberSerializer(messages, many=True).data,
+            MessageSerializer(messages, many=True).data,
             status=status.HTTP_200_OK)
 
     def post(self, request, group_id):
-        message_set = GroupSerializer(data=request.data, many=True)
+        message_set = MessageSerializer(data=request.data, many=True)
         if not message_set.is_valid():
             return Response({'message': '传入数据错误'}, status=status.HTTP_400_BAD_REQUEST)
+        '''
         if message_set.data['group'] != group_id:
             return Response({'message': '传入数据矛盾'}, status=status.HTTP_400_BAD_REQUEST)
+        '''
         return Response(message_set.data, status=status.HTTP_200_OK)
 
 
@@ -168,7 +172,7 @@ class MessageDetail(views.APIView):
         except Message.DoesNotExist():
             return False
 
-    def get(self, request, pk):
+    def get(self, request, pk, group_id):
         message = self.find_message(pk)
         if not message:
             return Response({'message': '请求的消息不存在'},
@@ -178,7 +182,7 @@ class MessageDetail(views.APIView):
                 MessageSerializer(instance=message).data,
                 status=status.HTTP_200_OK)
 
-    def delete(self, request, pk):
+    def delete(self, request, pk, group_id):
         message = self.find_message(pk)
         if not message:
             return Response({'message': '要删除的消息不存在'},
@@ -205,15 +209,15 @@ class DocumentList(views.APIView):
         if not group:
             return Response({'message': '对应组群不存在'}, status=status.HTTP_404_NOT_FOUND)
         try:
-            documents = Document.objects.filter(group=group)
+            documents = Document.objects.filter(group_id=group_id)
         except Document.DoesNotExist():
             return Response({'message': '查询对象不存在'}, status=status.HTTP_404_NOT_FOUND)
 
         return Response(
-            GroupMemberSerializer(documents, many=True).data,
+            DocumentSerializer(documents, many=True).data,
             status=status.HTTP_200_OK)
 
-    def post(self, request):
+    def post(self, request, group_id):
         document_set = DocumentSerializer(data=request.data)
         if document_set.is_valid():
             document_set.save()
@@ -232,17 +236,17 @@ class DocumentDetail(views.APIView):
         except Document.DoesNotExist():
             return False
 
-    def get(self, request, pk):
+    def get(self, request, pk, group_id):
         document = self.find_document(pk)
         if not document:
             return Response({'message': '请求的文档不存在'},
                             status=status.HTTP_404_NOT_FOUND)
         else:
             return Response(
-                MessageSerializer(instance=document).data,
+                DocumentSerializer(instance=document).data,
                 status=status.HTTP_200_OK)
 
-    def delete(self, request, pk):
+    def delete(self, request, pk, group_id):
         document = self.find_document(pk)
         if not document:
             return Response({'message': '要删除的文档不存在'},
@@ -285,7 +289,7 @@ class ProgressDetail(views.APIView):
         if not progress.is_valid():
             return Response({'message': '传入数据不合法'},
                             status=status.HTTP_400_BAD_REQUEST)
-        if progress.data['group'] != group_id:
+        if progress.validated_data.get('group').id != group_id:
             return Response({'message': '传入数据不匹配'},
                             status=status.HTTP_400_BAD_REQUEST)
         progress.save()
@@ -300,8 +304,8 @@ class ProgressDetail(views.APIView):
         if not new_progress.is_valid():
             return Response({'message': '传入数据不合法'},
                             status=status.HTTP_400_BAD_REQUEST)
-        if new_progress.data['group'] != group_id:
-            return Response({'message': '传入数据不匹配'},
+        if new_progress.validated_data.get('group').id != group_id:
+            return Response({'message': '数据不匹配'},
                             status=status.HTTP_400_BAD_REQUEST)
         new_progress.save()
         return Response(new_progress.data, status=status.HTTP_200_OK)
