@@ -10,18 +10,17 @@ class NotificationSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'message', 'created_time', 'is_read']
 
     def create(self, validated_data):
-        user = validated_data.pop('user_ids', [])
-        notifications = []
+        user_ids = validated_data.pop('user_ids', [])
         group = self.context.get('group')
-        validated_data['group'] = group
+        notifications = []
 
-        for user_id in user:
+        for user_id in user_ids:
             notification_data = {
                 **validated_data,
-                'user': user_id
+                'user_id': user_id,
+                'group': group
             }
-            notification = Notification.objects.create(**notification_data)
-            notifications.append(notification)
+            notifications.append(Notification.objects.create(**notification_data))
 
         return notifications
 
