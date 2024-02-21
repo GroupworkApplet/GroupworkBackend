@@ -8,6 +8,7 @@ from user.models import UserCredit
 class TaskSettlement(models.Model):
     task = models.OneToOneField('task.Task', on_delete=models.CASCADE, related_name='settlement', verbose_name='任务')
     is_completed = models.BooleanField(default=False, verbose_name='是否完成')
+    completion_time = models.DateTimeField(blank=True, null=True, verbose_name='完成时间')
 
     def __str__(self):
         return f"{self.task.title} - {'已完成' if self.is_completed else '未完成'}"

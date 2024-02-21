@@ -30,7 +30,9 @@ class Task(models.Model):
 # 任务分配模型
 class TaskAssignment(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='assignments', verbose_name='任务')
-    partner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assignments', verbose_name='任务参与者')
+    partner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assignments', verbose_name='任务参与者',
+                                blank=True, null=True, default=None)
+    content = models.TextField(max_length=100, verbose_name='任务内容', default='', blank=True, null=True)
 
     def __str__(self):
         return f"{self.task.title} - {self.partner.username}"

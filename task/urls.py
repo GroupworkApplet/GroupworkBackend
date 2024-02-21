@@ -4,7 +4,6 @@ from .views import (
     TaskDetailsView,
     TaskProgressDetailsView,
     TaskAssignmentList,
-    TaskAssignmentDetail
 )
 
 urlpatterns = [
@@ -13,10 +12,10 @@ urlpatterns = [
     # 任务详情（获取、更新、删除）
     path('tasks/<int:pk>/', TaskDetailsView.as_view(), name='task-details'),
     # 任务进度详情（获取、更新）
-    path('task-progress/<int:pk>/', TaskProgressDetailsView.as_view(), name='task-progress-details'),
+    path('tasks/<int:pk>/task-progress/', TaskProgressDetailsView.as_view(), name='task-progress-details'),
     # 任务分配列表（获取、创建）
-    path('task-assignments/', TaskAssignmentList.as_view(), name='task-assignments-list'),
+    path('tasks/<int:pk>/task-assignments/', TaskAssignmentList.as_view(), name='task-assignments-list'),
     # 任务分配详情（获取、更新、删除）
-    path('task-assignments/<int:pk>/', TaskAssignmentDetail.as_view(), name='task-assignment-detail'),
+    path('tasks/<int:pk>/task-assignments/<int:assignment_id>/', TaskAssignmentList.as_view(), name='task-assignments-list'),
 ]
 

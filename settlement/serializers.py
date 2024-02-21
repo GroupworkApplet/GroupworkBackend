@@ -1,21 +1,37 @@
 from rest_framework import serializers
-from user.serializers import UserSerializer
-from task.serializers import TaskSerializer
-from .models import TaskSettlement, MemberContribution
+from .models import TaskSettlement, MemberContribution, User
 
 
 class TaskSettlementSerializer(serializers.ModelSerializer):
-    task = TaskSerializer(read_only=True)
-
     class Meta:
         model = TaskSettlement
-        fields = ['task', 'is_completed', 'completion_time']
+        fields = ['is_completed', 'completion_time']
+
+    def create(self, validated_data):
+        task = self.context.get('task')
+        validated_data['task'] = task
+        settlement = TaskSettlement.objects.create(**validated_data)
+        return settlement
 
 
 class MemberContributionSerializer(serializers.ModelSerializer):
-    settlement = TaskSettlementSerializer(read_only=True)
-    member = UserSerializer(read_only=True)
+    member = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
 
     class Meta:
         model = MemberContribution
-        fields = ['settlement', 'member', 'contribution']
+        fields = ['member', 'contribution']
+
+    def create(self, validated_data):
+        settlement = self.context['settlement']
+        member = validated_data['member']
+        contribution = validated_data.get('contribution', 0)
+
+        member_contribution = MemberContribution.objects.create(
+            settlement=settlement,
+            member=member,
+            contribution=contribution
+        )
+
+        member_contribution.update_credit()
+        return member_contribution
+
