@@ -21,8 +21,8 @@ class CreateTaskView(APIView):
                 task_progress_data = {
                     'task': task.id,
                     'status': '0',
-                    'remind_time': request.data.get('remind_time'),
-                    'remind_content': request.data.get('remind_content', '')
+                    'remind_time': "2024-1-1",
+                    'remind_content': "quick"
                 }
                 task_progress_serializer = TaskProgressSerializer(data=task_progress_data)
                 if task_progress_serializer.is_valid():
@@ -38,6 +38,14 @@ class CreateTaskView(APIView):
                 return Response(response_data, status=status.HTTP_201_CREATED)
 
             return Response(task_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# 获取某人领导的所有任务
+class TaskFound(APIView):
+    def get(self, request, pk):
+        tasks = Task.objects.filter(leader=pk)
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data)
 
 
 # 任务详情

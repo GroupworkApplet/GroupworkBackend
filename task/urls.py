@@ -3,7 +3,7 @@ from .views import (
     CreateTaskView,
     TaskDetailsView,
     TaskProgressDetailsView,
-    TaskAssignmentList,
+    TaskAssignmentList, TaskFound,
 )
 
 urlpatterns = [
@@ -17,5 +17,6 @@ urlpatterns = [
     path('tasks/<int:pk>/task-assignments/', TaskAssignmentList.as_view(), name='task-assignments-list'),
     # 任务分配详情（获取、更新、删除）
     path('tasks/<int:pk>/task-assignments/<int:assignment_id>/', TaskAssignmentList.as_view(), name='task-assignments-list'),
+    path('task-find/<int:pk>/', TaskFound.as_view(), name='TaskFound'),
 ]
 
