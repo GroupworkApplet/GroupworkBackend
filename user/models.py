@@ -6,9 +6,9 @@ from django.contrib.auth.models import User
 # 用户个人信息
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_length=20, default="")
     #email = models.EmailField(max_length=50, null=True, blank=True)
-    password=models.CharField(max_length=15)
+    password=models.CharField(max_length=15, default="")
 
     def __str__(self):
         return self.user.username

@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+
+  groupwork:
+    image: groupwork
+    restart: always
+    container_name: zq-groupwork
+    networks:
+      - app-net
+      - traefik
+    labels:
+      traefik.enable: true
+      traefik.http.routers.groupwork.rule: Host(`api.groupwork.temp.ziqiang.net.cn`)
+      traefik.http.routers.groupwork.entrypoints: websecure
+      traefik.http.services.groupwork.loadbalancer.server.port: 8084
+
+networks:
+  app-net: {}
+  traefik:
+    external: true

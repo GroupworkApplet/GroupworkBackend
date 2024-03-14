@@ -20,7 +20,7 @@ class Task(models.Model):
     title = models.CharField(max_length=50, verbose_name='任务名称')
     detail = models.TextField(verbose_name='任务详情',blank=True)
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, verbose_name='任务类型')
-    number=models.CharField(verbose_name="小组人数",max_length=2)
+    number=models.CharField(verbose_name="小组人数",max_length=2,default="")
     leader = models.ForeignKey(User, on_delete=models.CASCADE, related_name='leader', verbose_name='任务创建者')
     deadline = models.CharField(max_length=20,verbose_name='截止日期')
 
