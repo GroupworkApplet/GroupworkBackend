@@ -1,13 +1,12 @@
-from datetime import datetime, timedelta
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, logout
 from django.contrib.auth.models import User
-from django.http import JsonResponse
-from rest_framework import views, status, permissions
-from rest_framework.response import Response
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404
+from rest_framework import views, status
+from rest_framework.response import Response
+
 from .models import UserProfile, EducationOrWorkInfo, UserCredit
 from .serializers import UserSerializer, UserProfileSerializer, EducationOrWorkInfoSerializer, UserCreditSerializer
-from django.views.decorators.csrf import csrf_exempt
 
 
 # 用户注册
@@ -16,7 +15,6 @@ class UserRegisterView(views.APIView):
 
     def post(self, request):
         serializer = UserSerializer(data=request.data)
-
         # 当数据有效且用户名未注册时，保存用户数据
         if serializer.is_valid():
             username = serializer.validated_data['username']
@@ -76,16 +74,24 @@ class jwtorder(views.APIView):
 class UserLogoutView(views.APIView):
     def get(self, request):
         logout(request)
+        authorization_header = request.headers.get('Authorization')
+        if authorization_header:
+            _, token = authorization_header.split(' ')
+            cache.set(token, True)
         return Response({'message': '登出成功'}, status=status.HTTP_200_OK)
 
 
-# 用户信息更新
+# 用户信息更新与获取
+class Userinfoget(views.APIView):
+    def get(self, request, pk):
+        user = get_object_or_404(UserProfile, user_id=pk)
+        if user:
+            return Response(UserProfileSerializer(user).data, status=status.HTTP_200_OK)
 class UserProfileUpdateView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [jwtauthen, ]
 
-    def put(self, request):
-        user = request.user
-        user_profile = get_object_or_404(UserProfile, user=user)
+    def put(self, request, pk):
+        user_profile = get_object_or_404(UserProfile, user_id=pk)
         serializer = UserProfileSerializer(user_profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -94,13 +100,19 @@ class UserProfileUpdateView(views.APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# 用户学院获取
+class Eduget(views.APIView):
+    def get(self, request, pk):
+        user = get_object_or_404(EducationOrWorkInfo, user_id=pk)
+        if user:
+            return Response(EducationOrWorkInfoSerializer(user).data, status=status.HTTP_200_OK)
 # 用户教育或工作信息更新
 class UserEducationOrWorkInfoUpdateView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [jwtauthen, ]
 
-    def put(self, request):
+    def put(self, request, pk):
         user = request.user
-        education_or_work_info = get_object_or_404(EducationOrWorkInfo, user=user)
+        education_or_work_info = get_object_or_404(EducationOrWorkInfo, user_id=pk)
         serializer = EducationOrWorkInfoSerializer(education_or_work_info, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -111,17 +123,17 @@ class UserEducationOrWorkInfoUpdateView(views.APIView):
 
 # 用户信用信息获取和更新
 class UserCreditView(views.APIView):
-    permissions_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        user = request.user
-        user_credit = get_object_or_404(UserCredit, user=user)
+        user = request.user.id
+        print(user)
+        user_credit = UserCredit.objects.get(user=user)
         serializer = UserCreditSerializer(user_credit)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request):
         user = request.user
-        user_credit = get_object_or_404(UserCredit, user=user)
+        user_credit = get_object_or_404(UserCredit, user_id=user)
         serializer = UserCreditSerializer(user_credit, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()

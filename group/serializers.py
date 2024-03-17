@@ -4,6 +4,7 @@ from .models import *
 
 
 class GroupSerializer(serializers.ModelSerializer):
+    group_id = serializers.ReadOnlyField(source="id")
     task_title = serializers.ReadOnlyField(source='task.title')
     members = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     messages = serializers.PrimaryKeyRelatedField(many=True, read_only=True)

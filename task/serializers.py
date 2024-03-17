@@ -1,11 +1,14 @@
 from rest_framework import serializers
-from .models import Task, TaskAssignment, TaskProgress
+
+from .models import Task, TaskAssignment, TaskProgress, ClockIn
 
 
 class TaskSerializer(serializers.ModelSerializer):
+    task_id = serializers.ReadOnlyField(source='id')
     class Meta:
         model = Task
-        fields = [ 'title', 'detail', 'number','type', 'leader', 'deadline']
+        fields = ['title', 'detail', 'number', 'type', 'leader', 'deadline', 'task_id']
+
 
 
 class TaskAssignmentSerializer(serializers.ModelSerializer):
@@ -29,3 +32,14 @@ class TaskProgressSerializer(serializers.ModelSerializer):
     class Meta:
         model = TaskProgress
         fields = ['id', 'task', 'status', 'remind_time', 'remind_content']
+
+
+class TaskClockInSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClockIn
+        fields = ['uid', 'uname', 'text', 'img_url', 'task_id', 'group_id']
+
+    def create(self, validated_data):
+        # 创建任务分配对象
+        task_assignment = ClockIn.objects.create(**validated_data)
+        return task_assignment

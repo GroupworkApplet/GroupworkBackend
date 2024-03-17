@@ -1,11 +1,13 @@
 from django.db import transaction
-from django.shortcuts import render, HttpResponse, redirect
-from .models import TaskProgress, TaskAssignment, Task
-from .serializers import TaskProgressSerializer, TaskAssignmentSerializer, TaskSerializer
+from django.http import Http404
+from django.shortcuts import get_list_or_404
 from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
+from rest_framework import status, views
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.views import APIView
+
+from .models import TaskProgress, TaskAssignment, Task, ClockIn
+from .serializers import TaskProgressSerializer, TaskAssignmentSerializer, TaskSerializer, TaskClockInSerializer
 
 
 # 创建任务
@@ -142,3 +144,33 @@ class TaskAssignmentList(APIView):
         # 删除任务分配
         task_assignment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class getClockInfo(views.APIView):
+    def get(self, request):
+        taskId = request.GET.get('task_id')
+        # list = ClockIn.objects.filter(task_id=taskId)
+        # serialized_data = [TaskClockInSerializer(clock_in).data for clock_in in list]
+        # return JsonResponse(serialized_data, safe=False)
+
+        try:
+            clockIn = get_list_or_404(ClockIn, task_id=taskId)
+        except Http404:
+            clockIn = []
+        serializer = TaskClockInSerializer(clockIn, many=True)
+        if serializer:
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        # serializer = TaskClockInSerializer(data=request.data)
+        # ClockIn.objects.create(**request.data)
+        # # if serializer.is_valid():
+        # #     ClockIn.objects.create(uid=serializer.validated_data['uid'],uname=serializer.validated_data['uname'],text=serializer.validated_data['text'],img_url=serializer.validated_data['img_url'],task_id=serializer.validated_data['task_id'],group_id=serializer.validated_data['group_id'])
+        # return JsonResponse(request.data, safe=False)
+        serializer = TaskClockInSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

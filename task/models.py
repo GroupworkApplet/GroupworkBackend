@@ -1,5 +1,5 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 
 
 # 任务表：存储任务的基本信息，如名称、详情、类型、创建者、截止日期等。
@@ -54,3 +54,17 @@ class TaskProgress(models.Model):
 
     def __str__(self):
         return f"{self.task.title} - {self.status}"
+
+
+class ClockIn(models.Model):
+    id = models.IntegerField(primary_key=True, auto_created=True)
+    uid = models.IntegerField()
+    uname = models.CharField(max_length=20)
+    text = models.TextField()
+    img_url = models.CharField(max_length=100)
+    task_id = models.IntegerField()
+    group_id = models.IntegerField()
+    created_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.id} - {self.uid} - {self.uname} - {self.text} - {self.img_url} - {self.task_id} - {self.group_id} - {self.created_time}"

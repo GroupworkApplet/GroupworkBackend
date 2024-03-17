@@ -1,12 +1,59 @@
-from rest_framework import views
-from rest_framework.response import Response
+import os
+
+from django.http import FileResponse
 from rest_framework import status
+from rest_framework import views
+from rest_framework.parsers import MultiPartParser
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .serializers import *
 from .models import *
+from .serializers import *
+
+# 获取upload文件夹的路径
+save_path = os.path.join(os.path.abspath(os.path.join(os.getcwd(), "..")), 'upload')
 
 
+class GetImage(APIView):
+    def get(self, request, imgurl):
+        # 构建图片文件的完整路径
+        image_path = os.path.join(save_path, imgurl)
+        # 检查文件是否存在
+        if not os.path.isfile(image_path):
+            return Response({'message': '文件不存在'}, status=status.HTTP_404_NOT_FOUND)
+        print(image_path)
+        # 返回文件作为响应
+        return FileResponse(open(image_path, 'rb'))
 
+
+class UploadFile(APIView):
+    parser_classes = [MultiPartParser]
+
+    def post(self, request):
+        file = request.FILES.get('file')
+        # 如果文件存在
+        if file:
+            # 获取文件名
+            filename = file.name
+            # 构建完整的文件路径
+            full_save_path = os.path.join(save_path, filename)
+            # 保存文件到本地
+            with open(full_save_path, 'wb+') as f:
+                for chunk in file.chunks():
+                    f.write(chunk)
+            return Response({'file': filename},
+                            status=status.HTTP_200_OK)
+        else:
+            return Response({'message': '文件上传失败'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+
+class getid(views.APIView):
+    def get(self, request, task_id):
+        group = Group.objects.get(task_id=task_id)
+        serializer = GroupSerializer(group)
+        if serializer:
+            return Response(serializer.data, status=status.HTTP_200_OK)
 # 所有组的接口
 class GroupList(views.APIView):
 
@@ -36,7 +83,8 @@ class GroupDetail(views.APIView):
     # 判断查找的group是否存在
     def find_group(pk):
         try:
-            group = Group.objects.get(pk=pk)
+            group = Group.objects.get(id=pk)
+            print(group)
             return group
         except Group.DoesNotExist:
             return False
@@ -94,6 +142,24 @@ class GroupMemberList(views.APIView):
         return Response(member_set.data, status=status.HTTP_200_OK)
 
 
+# 获取某个小组的leader
+class groupLeader(views.APIView):
+    def get(self, request, group_id):
+        members = GroupMember.objects.filter(group_id=group_id)
+        for member in members:
+            if member.is_leader == 1:
+                return Response({'user_id': member.user_id}, status=status.HTTP_200_OK)
+
+
+# 获取某人参与的全部小组
+class groupget(views.APIView):
+    def get(self, request, pk):
+        members = GroupMember.objects.filter(user_id=pk)
+        groups = []
+        for member in members:
+            if member.is_leader == 0:
+                groups.append(member.group_id)
+        return Response(groups, status=status.HTTP_200_OK)
 # 一个组的某个组员的接口
 class GroupMemberDetail(views.APIView):
     @staticmethod
@@ -157,7 +223,9 @@ class MessageList(views.APIView):
         '''
         if message_set.data['group'] != group_id:
             return Response({'message': '传入数据矛盾'}, status=status.HTTP_400_BAD_REQUEST)
+            
         '''
+        message_set.save()
         return Response(message_set.data, status=status.HTTP_200_OK)
 
 
